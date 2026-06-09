@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fokus_app_v2/screens/abstinence_screen.dart';
 import 'package:fokus_app_v2/screens/dashboard_screen.dart';
+import 'package:fokus_app_v2/screens/settings_screen.dart';
 import 'package:fokus_app_v2/screens/tasks_screen.dart';
 
 enum FocusTab { dashboard, tasks, abstinence }
@@ -28,36 +28,42 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('FokusApp', style: Theme.of(context).textTheme.headlineSmall),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      PopupMenuButton<FocusTab>(
+                        icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.onSurface, size: 28),
+                        initialValue: _selectedTab,
+                        tooltip: 'Seite auswählen',
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        position: PopupMenuPosition.under,
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(value: FocusTab.dashboard, child: Text('Dashboard')),
+                          const PopupMenuItem(value: FocusTab.tasks, child: Text('Aufgaben')),
+                          const PopupMenuItem(value: FocusTab.abstinence, child: Text('Verzichte')),
+                        ],
+                        onSelected: (value) {
+                          setState(() {
+                            _selectedTab = value;
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.settings_rounded, color: Theme.of(context).colorScheme.onSurface),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const SettingsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(_buildTabLabel(_selectedTab), style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 6),
                   Text('Wähle deine Ansicht. Ruhig. Klar. Schnell.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700)),
-                  const SizedBox(height: 20),
-                  CupertinoSlidingSegmentedControl<FocusTab>(
-                    groupValue: _selectedTab,
-                    thumbColor: Colors.white,
-                    backgroundColor: Colors.grey.shade200,
-                    padding: const EdgeInsets.all(4),
-                    children: const {
-                      FocusTab.dashboard: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-                        child: Text('Dashboard'),
-                      ),
-                      FocusTab.tasks: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-                        child: Text('Aufgaben'),
-                      ),
-                      FocusTab.abstinence: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-                        child: Text('Verzichte'),
-                      ),
-                    },
-                    onValueChanged: (value) {
-                      if (value == null) return;
-                      setState(() {
-                        _selectedTab = value;
-                      });
-                    },
-                  ),
                 ],
               ),
             ),
@@ -77,6 +83,17 @@ class _HomeScreenState extends State<HomeScreen> {
         return const AbstinenceScreen();
       case FocusTab.dashboard:
         return const DashboardScreen();
+    }
+  }
+
+  String _buildTabLabel(FocusTab tab) {
+    switch (tab) {
+      case FocusTab.dashboard:
+        return 'Dashboard';
+      case FocusTab.tasks:
+        return 'Aufgaben';
+      case FocusTab.abstinence:
+        return 'Verzichte';
     }
   }
 }

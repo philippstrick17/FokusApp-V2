@@ -14,21 +14,37 @@ class FokusApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AppState(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'FokusApp V2',
-        theme: ThemeData(
-          brightness: Brightness.light,
-          scaffoldBackgroundColor: const Color(0xFFFAFBFF),
-          primaryColor: const Color(0xFF4C6FFF),
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4C6FFF)),
-          textTheme: const TextTheme(
-            headlineSmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
-            titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            bodyMedium: TextStyle(fontSize: 15, height: 1.5),
-          ),
-        ),
-        home: const HomeScreen(),
+      child: Consumer<AppState>(
+        builder: (context, appState, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'FokusApp V2',
+            theme: appState.darkModeEnabled
+                ? ThemeData(
+                    brightness: Brightness.dark,
+                    scaffoldBackgroundColor: const Color(0xFF111827),
+                    primaryColor: const Color(0xFF7C99FF),
+                    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7C99FF), brightness: Brightness.dark),
+                    textTheme: const TextTheme(
+                      headlineSmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+                      titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      bodyMedium: TextStyle(fontSize: 15, height: 1.5),
+                    ),
+                  )
+                : ThemeData(
+                    brightness: Brightness.light,
+                    scaffoldBackgroundColor: const Color(0xFFFAFBFF),
+                    primaryColor: const Color(0xFF4C6FFF),
+                    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4C6FFF)),
+                    textTheme: const TextTheme(
+                      headlineSmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+                      titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      bodyMedium: TextStyle(fontSize: 15, height: 1.5),
+                    ),
+                  ),
+            home: const HomeScreen(),
+          );
+        },
       ),
     );
   }

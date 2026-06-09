@@ -14,8 +14,18 @@ class AppState extends ChangeNotifier {
     AbstinenceGoalModel(id: 'g2', title: 'Keine Social-Media-Pause', completedToday: false, currentStreak: 1, successCount: 3),
   ];
 
+  bool _dailyRemindersEnabled = false;
+  bool _gentleAnimationsEnabled = true;
+  bool _darkModeEnabled = false;
+  bool _privacyModeEnabled = true;
+
   List<TaskModel> get tasks => List.unmodifiable(_tasks);
   List<AbstinenceGoalModel> get goals => List.unmodifiable(_goals);
+
+  bool get dailyRemindersEnabled => _dailyRemindersEnabled;
+  bool get gentleAnimationsEnabled => _gentleAnimationsEnabled;
+  bool get darkModeEnabled => _darkModeEnabled;
+  bool get privacyModeEnabled => _privacyModeEnabled;
 
   double get taskCompletionRatio {
     if (_tasks.isEmpty) return 0.0;
@@ -68,6 +78,26 @@ class AppState extends ChangeNotifier {
       successCount: 0,
     );
     _goals.insert(0, goal);
+    notifyListeners();
+  }
+
+  void toggleDailyReminders() {
+    _dailyRemindersEnabled = !_dailyRemindersEnabled;
+    notifyListeners();
+  }
+
+  void toggleGentleAnimations() {
+    _gentleAnimationsEnabled = !_gentleAnimationsEnabled;
+    notifyListeners();
+  }
+
+  void toggleDarkMode() {
+    _darkModeEnabled = !_darkModeEnabled;
+    notifyListeners();
+  }
+
+  void togglePrivacyMode() {
+    _privacyModeEnabled = !_privacyModeEnabled;
     notifyListeners();
   }
 
