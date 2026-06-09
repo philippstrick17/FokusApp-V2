@@ -43,10 +43,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final recentTasks = appState.tasks.take(3).toList();
     final recentGoals = appState.goals.take(2).toList();
 
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurface = colorScheme.onSurface;
+    final primaryColor = colorScheme.primary;
+    const accentGreen = Color(0xFF23C6A5);
+
     return Scaffold(
       body: Stack(
         children: [
           SafeArea(
+            minimum: const EdgeInsets.only(top: 16),
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -60,16 +66,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         DonutChart(
                           progress: appState.taskCompletionRatio,
-                          color: const Color(0xFF4C6FFF),
-                          backgroundColor: const Color(0xFFE7EBFF),
+                          color: primaryColor,
+                          backgroundColor: primaryColor.withAlpha(28),
                           label: 'Tagesaufgaben',
                           valueLabel: '${(appState.taskCompletionRatio * 100).round()}%',
                         ),
                         const SizedBox(width: 24),
                         DonutChart(
                           progress: appState.goalCompletionRatio,
-                          color: const Color(0xFF23C6A5),
-                          backgroundColor: const Color(0xFFEAF8F4),
+                          color: accentGreen,
+                          backgroundColor: accentGreen.withAlpha(28),
                           label: 'Verzichts-Ziele',
                           valueLabel: '${(appState.goalCompletionRatio * 100).round()}%',
                         ),
@@ -91,7 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             )),
                         if (recentTasks.isEmpty) ...[
                           const SizedBox(height: 20),
-                          Center(child: Text('Noch keine Aufgaben. Füge eine in Aufgaben hinzu.', style: TextStyle(color: Colors.grey.shade600))),
+                          Center(child: Text('Noch keine Aufgaben. Füge eine in Aufgaben hinzu.', style: TextStyle(color: onSurface.withAlpha(140)))),
                         ],
                         const SizedBox(height: 28),
                         _SectionHeader(
@@ -106,7 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             )),
                         if (recentGoals.isEmpty) ...[
                           const SizedBox(height: 20),
-                          Center(child: Text('Noch keine Verzichts-Ziele. Lege eines in Verzichte an.', style: TextStyle(color: Colors.grey.shade600))),
+                          Center(child: Text('Noch keine Verzichts-Ziele. Lege eines in Verzichte an.', style: TextStyle(color: onSurface.withAlpha(140)))),
                         ],
                       ],
                     ),
@@ -160,10 +166,10 @@ class _SectionHeader extends StatelessWidget {
           children: [
             Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text(description, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+            Text(description, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
           ],
         ),
-        Icon(Icons.arrow_forward, color: Colors.grey.shade500),
+        Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ],
     );
 
@@ -190,6 +196,11 @@ class _TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final surface = Theme.of(context).cardColor;
+    final onSurfaceVariant = colorScheme.onSurfaceVariant;
+    final shadowColor = Theme.of(context).shadowColor.withAlpha(16);
+
     return InkWell(
       onTap: () {
         context.read<AppState>().toggleTaskCompleted(task.id);
@@ -199,10 +210,10 @@ class _TaskCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: surface,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 18, offset: const Offset(0, 8)),
+            BoxShadow(color: shadowColor, blurRadius: 18, offset: const Offset(0, 8)),
           ],
         ),
         child: Row(
@@ -211,10 +222,13 @@ class _TaskCard extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: task.completed ? const Color(0xFF4C6FFF) : Colors.grey.shade200,
+                color: task.completed ? colorScheme.primary : colorScheme.onSurface.withAlpha(16),
                 shape: BoxShape.circle,
               ),
-              child: Icon(task.completed ? Icons.check : Icons.circle_outlined, color: task.completed ? Colors.white : Colors.grey.shade500),
+              child: Icon(
+                task.completed ? Icons.check : Icons.circle_outlined,
+                color: task.completed ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -224,7 +238,7 @@ class _TaskCard extends StatelessWidget {
                   Text(task.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                   if (task.description.isNotEmpty) ...[
                     const SizedBox(height: 6),
-                    Text(task.description, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                    Text(task.description, style: TextStyle(color: onSurfaceVariant, fontSize: 14)),
                   ],
                 ],
               ),
@@ -233,10 +247,17 @@ class _TaskCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: task.priority == TaskPriority.high ? const Color(0xFFEF5B5B).withAlpha(31) : const Color(0xFF4C6FFF).withAlpha(31),
+                color: task.priority == TaskPriority.high ? const Color(0xFFEF5B5B).withAlpha(31) : colorScheme.primary.withAlpha(31),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(getPriorityLabel(task.priority), style: TextStyle(color: task.priority == TaskPriority.high ? const Color(0xFFEF5B5B) : const Color(0xFF4C6FFF), fontWeight: FontWeight.w600, fontSize: 13)),
+              child: Text(
+                getPriorityLabel(task.priority),
+                style: TextStyle(
+                  color: task.priority == TaskPriority.high ? const Color(0xFFEF5B5B) : colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
             ),
           ],
         ),
@@ -253,6 +274,11 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final surface = Theme.of(context).cardColor;
+    final onSurfaceVariant = colorScheme.onSurfaceVariant;
+    final shadowColor = Theme.of(context).shadowColor.withAlpha(16);
+
     return InkWell(
       onTap: () {
         context.read<AppState>().toggleGoalCompleted(goal.id);
@@ -262,10 +288,10 @@ class _GoalCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: surface,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 18, offset: const Offset(0, 8)),
+            BoxShadow(color: shadowColor, blurRadius: 18, offset: const Offset(0, 8)),
           ],
         ),
         child: Row(
@@ -286,7 +312,7 @@ class _GoalCard extends StatelessWidget {
                 children: [
                   Text(goal.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  Text('Streak: ${goal.currentStreak} Tage · Erfolge: ${goal.successCount}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                  Text('Streak: ${goal.currentStreak} Tage · Erfolge: ${goal.successCount}', style: TextStyle(color: onSurfaceVariant, fontSize: 13)),
                 ],
               ),
             ),
@@ -294,10 +320,17 @@ class _GoalCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: goal.completedToday ? const Color(0xFF23C6A5).withAlpha(36) : Colors.grey.shade100,
+                color: goal.completedToday ? const Color(0xFF23C6A5).withAlpha(36) : colorScheme.onSurface.withAlpha(12),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(goal.completedToday ? 'Erledigt' : 'Offen', style: TextStyle(color: goal.completedToday ? const Color(0xFF23C6A5) : Colors.grey.shade700, fontWeight: FontWeight.w600, fontSize: 13)),
+              child: Text(
+                goal.completedToday ? 'Erledigt' : 'Offen',
+                style: TextStyle(
+                  color: goal.completedToday ? const Color(0xFF23C6A5) : onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
             ),
           ],
         ),

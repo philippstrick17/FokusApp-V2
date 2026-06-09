@@ -105,13 +105,19 @@ class _TaskItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final surface = theme.cardColor;
+    final onSurfaceVariant = colorScheme.onSurfaceVariant;
+    final shadowColor = theme.shadowColor.withAlpha(16);
+
     return Dismissible(
       key: ValueKey(task.id),
       background: Container(
-        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(24)),
+        decoration: BoxDecoration(color: colorScheme.error.withAlpha(31), borderRadius: BorderRadius.circular(24)),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 18),
-        child: Icon(Icons.delete_outline, color: Colors.red.shade700),
+        child: Icon(Icons.delete_outline, color: colorScheme.error),
       ),
       direction: DismissDirection.endToStart,
       onDismissed: (_) => context.read<AppState>().deleteTask(task.id),
@@ -121,9 +127,9 @@ class _TaskItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: surface,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 18, offset: const Offset(0, 8))],
+            boxShadow: [BoxShadow(color: shadowColor, blurRadius: 18, offset: const Offset(0, 8))],
           ),
           child: Row(
             children: [
@@ -133,10 +139,10 @@ class _TaskItem extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: task.completed ? const Color(0xFF4C6FFF) : Colors.grey.shade200,
+                    color: task.completed ? colorScheme.primary : colorScheme.onSurface.withAlpha(16),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(task.completed ? Icons.check : Icons.circle_outlined, color: task.completed ? Colors.white : Colors.grey.shade500),
+                  child: Icon(task.completed ? Icons.check : Icons.circle_outlined, color: task.completed ? colorScheme.onPrimary : colorScheme.onSurfaceVariant),
                 ),
               ),
               const SizedBox(width: 16),
@@ -144,17 +150,17 @@ class _TaskItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(task.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(task.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                     if (task.description.isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      Text(task.description, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                      Text(task.description, style: TextStyle(color: onSurfaceVariant, fontSize: 14)),
                     ],
                     const SizedBox(height: 8),
-                    Text(getPriorityLabel(task.priority), style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text(getPriorityLabel(task.priority), style: TextStyle(color: onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -246,15 +252,17 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.task_alt, size: 78, color: Colors.grey.shade300),
+          Icon(Icons.task_alt, size: 78, color: onSurfaceVariant.withAlpha(80)),
           const SizedBox(height: 16),
           Text('Noch keine Aufgaben', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          Text('Beginne mit einer klaren Aufgabe, die dich ins Rollen bringt.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+          Text('Beginne mit einer klaren Aufgabe, die dich ins Rollen bringt.', textAlign: TextAlign.center, style: TextStyle(color: onSurfaceVariant)),
           const SizedBox(height: 18),
           ElevatedButton(onPressed: onTapAdd, child: const Text('Neue Aufgabe erstellen')),
         ],

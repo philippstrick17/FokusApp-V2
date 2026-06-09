@@ -84,22 +84,28 @@ class _GoalItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final surface = theme.cardColor;
+    final onSurfaceVariant = colorScheme.onSurfaceVariant;
+    final shadowColor = theme.shadowColor.withAlpha(16);
+
     return Dismissible(
       key: ValueKey(goal.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(24)),
+        decoration: BoxDecoration(color: colorScheme.error.withAlpha(31), borderRadius: BorderRadius.circular(24)),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 18),
-        child: Icon(Icons.delete_outline, color: Colors.red.shade700),
+        child: Icon(Icons.delete_outline, color: colorScheme.error),
       ),
       onDismissed: (_) => context.read<AppState>().deleteGoal(goal.id),
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: surface,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 18, offset: const Offset(0, 8))],
+          boxShadow: [BoxShadow(color: shadowColor, blurRadius: 18, offset: const Offset(0, 8))],
         ),
         child: Row(
           children: [
@@ -120,16 +126,16 @@ class _GoalItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(goal.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(goal.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
-                  Text(goal.description, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                  Text(goal.description, style: TextStyle(color: onSurfaceVariant, fontSize: 14)),
                   const SizedBox(height: 8),
-                  Text('Streak ${goal.currentStreak} • Erfolge ${goal.successCount}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text('Streak ${goal.currentStreak} • Erfolge ${goal.successCount}', style: TextStyle(color: onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Colors.grey),
+              icon: Icon(Icons.edit_outlined, color: colorScheme.onSurfaceVariant),
               onPressed: () => _showGoalDialog(context, goal: goal),
             ),
           ],
@@ -210,15 +216,17 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shield_moon, size: 78, color: Colors.grey.shade300),
+          Icon(Icons.shield_moon, size: 78, color: onSurfaceVariant.withAlpha(80)),
           const SizedBox(height: 16),
           Text('Noch keine Verzichte', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          Text('Füge deine Impulsziele hinzu und markiere sie täglich als erledigt.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+          Text('Füge deine Impulsziele hinzu und markiere sie täglich als erledigt.', textAlign: TextAlign.center, style: TextStyle(color: onSurfaceVariant)),
           const SizedBox(height: 18),
           ElevatedButton(onPressed: onTapAdd, child: const Text('Ziel erstellen')),
         ],

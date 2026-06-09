@@ -37,7 +37,7 @@ class DonutChart extends StatelessWidget {
             children: [
               Text(valueLabel, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
-              Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+              Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
             ],
           ),
         ],

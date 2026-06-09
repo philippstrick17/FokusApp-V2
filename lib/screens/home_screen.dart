@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _scaffoldKey,
       drawer: Drawer(
         child: SafeArea(
+          minimum: const EdgeInsets.only(top: 16),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             child: Column(
@@ -71,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SafeArea(
+        minimum: const EdgeInsets.only(top: 16),
         child: Column(
           children: [
             const SizedBox(height: 16),
