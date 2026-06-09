@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fokus_app_v2/models/abstinence_goal_model.dart';
 import 'package:fokus_app_v2/models/task_model.dart';
+import 'package:fokus_app_v2/models/fitness_goal_model.dart';
 
 class AppState extends ChangeNotifier {
   final List<TaskModel> _tasks = [
@@ -15,6 +16,10 @@ class AppState extends ChangeNotifier {
   final List<AbstinenceGoalModel> _goals = [
     AbstinenceGoalModel(id: 'g1', title: 'Heute kein Zucker', completedToday: true, currentStreak: 4, successCount: 7),
     AbstinenceGoalModel(id: 'g2', title: 'Keine Social-Media-Pause', completedToday: false, currentStreak: 1, successCount: 3),
+  ];
+
+  final List<FitnessGoalModel> _fitnessGoals = [
+    FitnessGoalModel(id: 'f1', title: 'Schritte', targetValue: 6000, currentValue: 0, unit: 'Schritte'),
   ];
 
   bool _dailyRemindersEnabled = false;
@@ -29,10 +34,12 @@ class AppState extends ChangeNotifier {
   static const _tasksKey = 'app_tasks';
   static const _goalsKey = 'app_goals';
   static const _settingsKey = 'app_settings';
+  static const _fitnessKey = 'app_fitness';
   static const _lastResetKey = 'app_last_reset';
 
   List<TaskModel> get tasks => List.unmodifiable(_tasks);
   List<AbstinenceGoalModel> get goals => List.unmodifiable(_goals);
+  List<FitnessGoalModel> get fitnessGoals => List.unmodifiable(_fitnessGoals);
 
   bool get dailyRemindersEnabled => _dailyRemindersEnabled;
   bool get gentleAnimationsEnabled => _gentleAnimationsEnabled;
@@ -50,6 +57,15 @@ class AppState extends ChangeNotifier {
   double get goalCompletionRatio {
     if (_goals.isEmpty) return 0.0;
     return _goals.where((goal) => goal.completedToday).length / _goals.length;
+  }
+
+  double get fitnessCompletionRatio {
+    if (_fitnessGoals.isEmpty) return 0.0;
+    double totalProgress = 0.0;
+    for (var goal in _fitnessGoals) {
+      totalProgress += goal.progress;
+    }
+    return totalProgress / _fitnessGoals.length;
   }
 
   AppState() {
@@ -160,6 +176,12 @@ class AppState extends ChangeNotifier {
         AbstinenceGoalModel(id: 'g2', title: 'Keine Social-Media-Pause', completedToday: false, currentStreak: 1, successCount: 3),
       ]);
 
+    _fitnessGoals
+      ..clear()
+      ..addAll([
+        FitnessGoalModel(id: 'f1', title: 'Schritte', targetValue: 6000, currentValue: 0, unit: 'Schritte'),
+      ]);
+
     _dailyRemindersEnabled = false;
     _gentleAnimationsEnabled = true;
     _darkModeEnabled = false;
@@ -213,12 +235,42 @@ class AppState extends ChangeNotifier {
     for (var i = 0; i < _goals.length; i++) {
       _goals[i] = _goals[i].copyWith(completedToday: false, currentStreak: 0, successCount: 0);
     }
+    for (var i = 0; i < _fitnessGoals.length; i++) {
+      _fitnessGoals[i] = _fitnessGoals[i].copyWith(currentValue: 0);
+    }
+    notifyListeners();
+    _persistState();
+  }
+
+  void updateFitnessGoal(FitnessGoalModel newGoal) {
+    final index = _fitnessGoals.indexWhere((g) => g.id == newGoal.id);
+    if (index == -1) return;
+    _fitnessGoals[index] = newGoal;
+    notifyListeners();
+    _persistState();
+  }
+
+  void addFitnessProgress(String id, int amount) {
+    final index = _fitnessGoals.indexWhere((g) => g.id == id);
+    if (index == -1) return;
+    final goal = _fitnessGoals[index];
+    _fitnessGoals[index] = goal.copyWith(currentValue: goal.currentValue + amount);
     notifyListeners();
     _persistState();
   }
 
   Future<void> _loadCache() async {
     final prefs = await SharedPreferences.getInstance();
+
+    final storedFitness = prefs.getString(_fitnessKey);
+    if (storedFitness != null) {
+      try {
+        final decoded = jsonDecode(storedFitness) as List<dynamic>;
+        _fitnessGoals
+          ..clear()
+          ..addAll(decoded.map((item) => FitnessGoalModel.fromJson(item as Map<String, dynamic>)));
+      } catch (_) {}
+    }
 
     final storedTasks = prefs.getString(_tasksKey);
     if (storedTasks != null) {
@@ -297,6 +349,11 @@ class AppState extends ChangeNotifier {
         );
       }
 
+      // Fitness zurücksetzen
+      for (var i = 0; i < _fitnessGoals.length; i++) {
+        _fitnessGoals[i] = _fitnessGoals[i].copyWith(currentValue: 0);
+      }
+
       _lastResetDate = today;
       _persistState();
     }
@@ -306,6 +363,7 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tasksKey, jsonEncode(_tasks.map((task) => task.toJson()).toList()));
     await prefs.setString(_goalsKey, jsonEncode(_goals.map((goal) => goal.toJson()).toList()));
+    await prefs.setString(_fitnessKey, jsonEncode(_fitnessGoals.map((goal) => goal.toJson()).toList()));
     await prefs.setString(_settingsKey, jsonEncode({
       'dailyReminders': _dailyRemindersEnabled,
       'gentleAnimations': _gentleAnimationsEnabled,

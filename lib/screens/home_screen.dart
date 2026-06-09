@@ -4,9 +4,10 @@ import 'package:fokus_app_v2/screens/abstinence_screen.dart';
 import 'package:fokus_app_v2/screens/dashboard_screen.dart';
 import 'package:fokus_app_v2/screens/settings_screen.dart';
 import 'package:fokus_app_v2/screens/tasks_screen.dart';
+import 'package:fokus_app_v2/screens/fitness_screen.dart';
 import 'package:fokus_app_v2/providers/app_state.dart';
 
-enum FocusTab { dashboard, tasks, abstinence }
+enum FocusTab { dashboard, tasks, abstinence, fitness }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,6 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   selected: _selectedTab == FocusTab.abstinence,
                   onTap: () {
                     setState(() => _selectedTab = FocusTab.abstinence);
+                    Navigator.of(context).pop();
+                  },
+                ),
+                _DrawerItem(
+                  label: 'Fitness',
+                  selected: _selectedTab == FocusTab.fitness,
+                  onTap: () {
+                    setState(() => _selectedTab = FocusTab.fitness);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -127,6 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return const TasksScreen();
       case FocusTab.abstinence:
         return const AbstinenceScreen();
+      case FocusTab.fitness:
+        return const FitnessScreen();
       case FocusTab.dashboard:
         return DashboardScreen(
           onNavigate: (destination) {
@@ -134,6 +145,8 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() => _selectedTab = FocusTab.tasks);
             } else if (destination == 'abstinence') {
               setState(() => _selectedTab = FocusTab.abstinence);
+            } else if (destination == 'fitness') {
+              setState(() => _selectedTab = FocusTab.fitness);
             }
           },
         );
@@ -148,6 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return 'Aufgaben';
       case FocusTab.abstinence:
         return 'Verzichte';
+      case FocusTab.fitness:
+        return 'Fitness';
     }
   }
 }

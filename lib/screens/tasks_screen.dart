@@ -17,7 +17,7 @@ class TasksScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (appState.tasks.isEmpty)
-              _EmptyState(onTapAdd: () => _showTaskDialog(context))
+              _EmptyState(onTapAdd: () => _showTaskEditDialog(context))
             else
               Column(
                 children: [
@@ -28,72 +28,10 @@ class TasksScreen extends StatelessWidget {
                 ],
               ),
             const SizedBox(height: 20),
-            _ActionBar(onAdd: () => _showTaskDialog(context)),
+            _ActionBar(onAdd: () => _showTaskEditDialog(context)),
           ],
         ),
       ),
-    );
-  }
-
-  void _showTaskDialog(BuildContext context, {TaskModel? task}) {
-    final titleController = TextEditingController(text: task?.title ?? '');
-    final descriptionController = TextEditingController(text: task?.description ?? '');
-    var priority = task?.priority ?? TaskPriority.medium;
-
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(task == null ? 'Neue Aufgabe' : 'Aufgabe bearbeiten'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Titel'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(labelText: 'Beschreibung'),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<TaskPriority>(
-                  initialValue: priority,
-                  decoration: const InputDecoration(labelText: 'Priorität'),
-                  items: TaskPriority.values.map((value) {
-                    return DropdownMenuItem(value: value, child: Text(getPriorityLabel(value)));
-                  }).toList(),
-                  onChanged: (value) => priority = value ?? TaskPriority.medium,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Abbrechen')),
-            ElevatedButton(
-              onPressed: () {
-                final title = titleController.text.trim();
-                if (title.isEmpty) return;
-                final appState = context.read<AppState>();
-                if (task == null) {
-                  appState.addTask(title: title, description: descriptionController.text.trim(), priority: priority);
-                } else {
-                  appState.updateTask(task.copyWith(
-                    title: title,
-                    description: descriptionController.text.trim(),
-                    priority: priority,
-                  ));
-                }
-                Navigator.of(context).pop();
-              },
-              child: Text(task == null ? 'Hinzufügen' : 'Speichern'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
@@ -123,7 +61,7 @@ class _TaskItem extends StatelessWidget {
       onDismissed: (_) => context.read<AppState>().deleteTask(task.id),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: () => _showTaskDialog(context, task: task),
+        onTap: () => _showTaskEditDialog(context, task: task),
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -167,54 +105,62 @@ class _TaskItem extends StatelessWidget {
       ),
     );
   }
+}
 
-  void _showTaskDialog(BuildContext context, {required TaskModel task}) {
-    final titleController = TextEditingController(text: task.title);
-    final descriptionController = TextEditingController(text: task.description);
-    var priority = task.priority;
+// Zusammengeführte Dialog-Funktion mit StatefulBuilder für korrektes Dropdown-Verhalten
+void _showTaskEditDialog(BuildContext context, {TaskModel? task}) {
+  final titleController = TextEditingController(text: task?.title ?? '');
+  final descriptionController = TextEditingController(text: task?.description ?? '');
+  var priority = task?.priority ?? TaskPriority.medium;
 
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Aufgabe bearbeiten'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Titel')),
-                const SizedBox(height: 12),
-                TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Beschreibung'), maxLines: 3),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<TaskPriority>(
-                  initialValue: priority,
-                  decoration: const InputDecoration(labelText: 'Priorität'),
-                  items: TaskPriority.values.map((value) => DropdownMenuItem(value: value, child: Text(getPriorityLabel(value)))).toList(),
-                  onChanged: (value) => priority = value ?? TaskPriority.medium,
-                ),
-              ],
+  showDialog<void>(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text(task == null ? 'Neue Aufgabe' : 'Aufgabe bearbeiten'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Titel')),
+                  const SizedBox(height: 12),
+                  TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Beschreibung'), maxLines: 3),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<TaskPriority>(
+                    value: priority,
+                    decoration: const InputDecoration(labelText: 'Priorität'),
+                    items: TaskPriority.values.map((value) => DropdownMenuItem(value: value, child: Text(getPriorityLabel(value)))).toList(),
+                    onChanged: (value) {
+                      if (value != null) setDialogState(() => priority = value);
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Abbrechen')),
-            ElevatedButton(
-              onPressed: () {
-                final title = titleController.text.trim();
-                if (title.isEmpty) return;
-                context.read<AppState>().updateTask(task.copyWith(
-                      title: title,
-                      description: descriptionController.text.trim(),
-                      priority: priority,
-                    ));
-                Navigator.of(context).pop();
-              },
-              child: const Text('Speichern'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Abbrechen')),
+              ElevatedButton(
+                onPressed: () {
+                  final title = titleController.text.trim();
+                  if (title.isEmpty) return;
+                  final appState = context.read<AppState>();
+                  if (task == null) {
+                    appState.addTask(title: title, description: descriptionController.text.trim(), priority: priority);
+                  } else {
+                    appState.updateTask(task.copyWith(title: title, description: descriptionController.text.trim(), priority: priority));
+                  }
+                  Navigator.of(context).pop();
+                },
+                child: Text(task == null ? 'Hinzufügen' : 'Speichern'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }
 
 class _ActionBar extends StatelessWidget {

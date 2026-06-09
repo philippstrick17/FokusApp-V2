@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:confetti/confetti.dart';
 import 'package:fokus_app_v2/models/task_model.dart';
 import 'package:fokus_app_v2/models/abstinence_goal_model.dart';
+import 'package:fokus_app_v2/models/fitness_goal_model.dart';
 import 'package:fokus_app_v2/providers/app_state.dart';
 import 'package:fokus_app_v2/widgets/donut_chart.dart';
 
@@ -42,6 +43,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final appState = context.watch<AppState>();
     final recentTasks = appState.tasks.take(3).toList();
     final recentGoals = appState.goals.take(2).toList();
+    
+    // Sicherer Zugriff auf das Schritteziel
+    final fitnessGoals = appState.fitnessGoals;
+    final stepGoal = fitnessGoals.isNotEmpty ? fitnessGoals.firstWhere((g) => g.id == 'f1') : null;
 
     final colorScheme = Theme.of(context).colorScheme;
     final onSurface = colorScheme.onSurface;
@@ -60,26 +65,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        DonutChart(
-                          progress: appState.taskCompletionRatio,
-                          color: primaryColor,
-                          backgroundColor: primaryColor.withAlpha(28),
-                          label: 'Tagesaufgaben',
-                          valueLabel: '${(appState.taskCompletionRatio * 100).round()}%',
+                    Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DonutChart(
+                              progress: appState.taskCompletionRatio,
+                              color: primaryColor,
+                              backgroundColor: primaryColor.withAlpha(28),
+                              label: 'Tagesaufgaben',
+                              valueLabel: '${(appState.taskCompletionRatio * 100).round()}%',
+                            ),
+                            const SizedBox(width: 24),
+                            DonutChart(
+                              progress: appState.goalCompletionRatio,
+                              color: accentGreen,
+                              backgroundColor: accentGreen.withAlpha(28),
+                              label: 'Verzichts-Ziele',
+                              valueLabel: '${(appState.goalCompletionRatio * 100).round()}%',
+                            ),
+                            const SizedBox(width: 24),
+                            DonutChart(
+                              progress: appState.fitnessCompletionRatio,
+                              color: const Color(0xFF4C6FFF),
+                              backgroundColor: const Color(0xFF4C6FFF).withAlpha(28),
+                              label: 'Fitness',
+                              valueLabel: '${(appState.fitnessCompletionRatio * 100).round()}%',
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 24),
-                        DonutChart(
-                          progress: appState.goalCompletionRatio,
-                          color: accentGreen,
-                          backgroundColor: accentGreen.withAlpha(28),
-                          label: 'Verzichts-Ziele',
-                          valueLabel: '${(appState.goalCompletionRatio * 100).round()}%',
-                        ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Column(
@@ -114,6 +133,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const SizedBox(height: 20),
                           Center(child: Text('Noch keine Verzichts-Ziele. Lege eines in Verzichte an.', style: TextStyle(color: onSurface.withAlpha(140)))),
                         ],
+                        const SizedBox(height: 28),
+                        _SectionHeader(
+                          title: 'Fitness',
+                          description: 'Dein tägliches Aktivitätslevel.',
+                          onTap: () => widget.onNavigate('fitness'),
+                        ),
+                        const SizedBox(height: 16),
+                        if (stepGoal != null)
+                          _FitnessSummaryCard(
+                            goal: stepGoal,
+                            onTap: () => widget.onNavigate('fitness'),
+                          )
+                        else
+                          const Center(child: Text('Keine Fitnessdaten verfügbar.')),
                         const SizedBox(height: 48),
                         Center(
                           child: Text(
@@ -153,6 +186,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FitnessSummaryCard extends StatelessWidget {
+  final FitnessGoalModel goal;
+  final VoidCallback onTap;
+
+  const _FitnessSummaryCard({required this.goal, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final shadowColor = theme.shadowColor.withAlpha(16);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: shadowColor, blurRadius: 18, offset: const Offset(0, 8))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4C6FFF),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.directions_walk, color: Colors.white),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(goal.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${goal.currentValue} / ${goal.targetValue} ${goal.unit}',
+                    style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+          ],
+        ),
       ),
     );
   }

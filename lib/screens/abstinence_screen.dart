@@ -17,7 +17,7 @@ class AbstinenceScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (appState.goals.isEmpty)
-              _EmptyState(onTapAdd: () => _showGoalDialog(context))
+              _EmptyState(onTapAdd: () => _showGoalEditDialog(context))
             else
               Column(
                 children: [
@@ -28,51 +28,10 @@ class AbstinenceScreen extends StatelessWidget {
                 ],
               ),
             const SizedBox(height: 20),
-            _ActionBar(onAdd: () => _showGoalDialog(context)),
+            _ActionBar(onAdd: () => _showGoalEditDialog(context)),
           ],
         ),
       ),
-    );
-  }
-
-  void _showGoalDialog(BuildContext context, {AbstinenceGoalModel? goal}) {
-    final titleController = TextEditingController(text: goal?.title ?? '');
-    final descriptionController = TextEditingController(text: goal?.description ?? '');
-
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(goal == null ? 'Neues Ziel' : 'Ziel bearbeiten'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Titel')),
-                const SizedBox(height: 12),
-                TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Beschreibung'), maxLines: 3),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Abbrechen')),
-            ElevatedButton(
-              onPressed: () {
-                final title = titleController.text.trim();
-                if (title.isEmpty) return;
-                final appState = context.read<AppState>();
-                if (goal == null) {
-                  appState.addGoal(title: title, description: descriptionController.text.trim());
-                } else {
-                  appState.updateGoal(goal.copyWith(title: title, description: descriptionController.text.trim()));
-                }
-                Navigator.of(context).pop();
-              },
-              child: Text(goal == null ? 'Hinzufügen' : 'Speichern'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
@@ -136,49 +95,54 @@ class _GoalItem extends StatelessWidget {
             ),
             IconButton(
               icon: Icon(Icons.edit_outlined, color: colorScheme.onSurfaceVariant),
-              onPressed: () => _showGoalDialog(context, goal: goal),
+              onPressed: () => _showGoalEditDialog(context, goal: goal),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  void _showGoalDialog(BuildContext context, {required AbstinenceGoalModel goal}) {
-    final titleController = TextEditingController(text: goal.title);
-    final descriptionController = TextEditingController(text: goal.description);
+void _showGoalEditDialog(BuildContext context, {AbstinenceGoalModel? goal}) {
+  final titleController = TextEditingController(text: goal?.title ?? '');
+  final descriptionController = TextEditingController(text: goal?.description ?? '');
 
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Ziel bearbeiten'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Titel')),
-                const SizedBox(height: 12),
-                TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Beschreibung'), maxLines: 3),
-              ],
-            ),
+  showDialog<void>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(goal == null ? 'Neues Ziel' : 'Ziel bearbeiten'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Titel')),
+              const SizedBox(height: 12),
+              TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Beschreibung'), maxLines: 3),
+            ],
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Abbrechen')),
-            ElevatedButton(
-              onPressed: () {
-                final title = titleController.text.trim();
-                if (title.isEmpty) return;
-                context.read<AppState>().updateGoal(goal.copyWith(title: title, description: descriptionController.text.trim()));
-                Navigator.of(context).pop();
-              },
-              child: const Text('Speichern'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Abbrechen')),
+          ElevatedButton(
+            onPressed: () {
+              final title = titleController.text.trim();
+              if (title.isEmpty) return;
+              final appState = context.read<AppState>();
+              if (goal == null) {
+                appState.addGoal(title: title, description: descriptionController.text.trim());
+              } else {
+                appState.updateGoal(goal.copyWith(title: title, description: descriptionController.text.trim()));
+              }
+              Navigator.of(context).pop();
+            },
+            child: Text(goal == null ? 'Hinzufügen' : 'Speichern'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class _ActionBar extends StatelessWidget {
