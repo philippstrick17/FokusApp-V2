@@ -73,6 +73,37 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 6),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                title: const Text('Fortschritt zurücksetzen'),
+                subtitle: const Text('Setzt alle Erfolge, Streaks und erledigten Aufgaben zurück.'),
+                trailing: TextButton(
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Fortschritt zurücksetzen'),
+                          content: const Text('Bist du sicher? Dieser Vorgang setzt alle Aufgaben, Streaks und Erfolge zurück.'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Abbrechen')),
+                            ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Zurücksetzen')),
+                          ],
+                        );
+                      },
+                    );
+                    if (confirmed == true) {
+                      appState.resetAllProgress();
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Fortschritt wurde vollständig zurückgesetzt.')),
+                      );
+                    }
+                  },
+                  child: const Text('Zurücksetzen'),
+                ),
+              ),
+              const SizedBox(height: 6),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 title: const Text('Feedback senden'),
                 subtitle: const Text('Teile uns mit, was dir hilft oder was wir verbessern können.'),
                 trailing: Icon(Icons.arrow_forward_ios, color: Theme.of(context).colorScheme.onSurface.withAlpha(153), size: 18),

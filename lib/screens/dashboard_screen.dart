@@ -8,7 +8,9 @@ import 'package:fokus_app_v2/providers/app_state.dart';
 import 'package:fokus_app_v2/widgets/donut_chart.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final void Function(String destination) onNavigate;
+
+  const DashboardScreen({super.key, required this.onNavigate});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -29,7 +31,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  void _triggerCelebration() {
+  void _triggerCelebration(bool completed) {
+    if (!completed) return;
     SystemSound.play(SystemSoundType.click);
     _confettiController.play();
   }
@@ -52,7 +55,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         DonutChart(
                           progress: appState.taskCompletionRatio,
@@ -61,6 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           label: 'Tagesaufgaben',
                           valueLabel: '${(appState.taskCompletionRatio * 100).round()}%',
                         ),
+                        const SizedBox(width: 24),
                         DonutChart(
                           progress: appState.goalCompletionRatio,
                           color: const Color(0xFF23C6A5),
@@ -74,22 +79,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const _SectionHeader(title: 'Heute', description: 'Kleiner Gewinn. Starker Fokus.'),
+                        _SectionHeader(
+                          title: 'Heute',
+                          description: 'Kleiner Gewinn. Starker Fokus.',
+                          onTap: () => widget.onNavigate('tasks'),
+                        ),
                         const SizedBox(height: 16),
                         ...recentTasks.map((task) => Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: _TaskCard(task: task, onToggle: _triggerCelebration),
+                              child: _TaskCard(task: task, onToggle: (completed) => _triggerCelebration(completed)),
                             )),
                         if (recentTasks.isEmpty) ...[
                           const SizedBox(height: 20),
                           Center(child: Text('Noch keine Aufgaben. Füge eine in Aufgaben hinzu.', style: TextStyle(color: Colors.grey.shade600))),
                         ],
                         const SizedBox(height: 28),
-                        const _SectionHeader(title: 'Verzichte', description: 'Status und Streak auf einen Blick.'),
+                        _SectionHeader(
+                          title: 'Verzichte',
+                          description: 'Status und Streak auf einen Blick.',
+                          onTap: () => widget.onNavigate('abstinence'),
+                        ),
                         const SizedBox(height: 16),
                         ...recentGoals.map((goal) => Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: _GoalCard(goal: goal, onToggle: _triggerCelebration),
+                              child: _GoalCard(goal: goal, onToggle: (completed) => _triggerCelebration(completed)),
                             )),
                         if (recentGoals.isEmpty) ...[
                           const SizedBox(height: 20),
@@ -108,9 +121,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               confettiController: _confettiController,
               blastDirectionality: BlastDirectionality.explosive,
               particleDrag: 0.05,
-              emissionFrequency: 0.05,
-              numberOfParticles: 30,
-              gravity: 0.25,
+              emissionFrequency: 0.03,
+              numberOfParticles: 12,
+              gravity: 0.35,
               shouldLoop: false,
               colors: const [
                 Color(0xFF4C6FFF),
@@ -129,12 +142,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String description;
+  final VoidCallback? onTap;
 
-  const _SectionHeader({required this.title, required this.description});
+  const _SectionHeader({
+    required this.title,
+    required this.description,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final content = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
@@ -148,12 +166,25 @@ class _SectionHeader extends StatelessWidget {
         Icon(Icons.arrow_forward, color: Colors.grey.shade500),
       ],
     );
+
+    if (onTap == null) {
+      return content;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: content,
+      ),
+    );
   }
 }
 
 class _TaskCard extends StatelessWidget {
   final TaskModel task;
-  final VoidCallback onToggle;
+  final void Function(bool completed) onToggle;
 
   const _TaskCard({required this.task, required this.onToggle});
 
@@ -162,7 +193,7 @@ class _TaskCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         context.read<AppState>().toggleTaskCompleted(task.id);
-        onToggle();
+        onToggle(!task.completed);
       },
       borderRadius: BorderRadius.circular(24),
       child: Container(
@@ -216,7 +247,7 @@ class _TaskCard extends StatelessWidget {
 
 class _GoalCard extends StatelessWidget {
   final AbstinenceGoalModel goal;
-  final VoidCallback onToggle;
+  final void Function(bool completed) onToggle;
 
   const _GoalCard({required this.goal, required this.onToggle});
 
@@ -225,7 +256,7 @@ class _GoalCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         context.read<AppState>().toggleGoalCompleted(goal.id);
-        onToggle();
+        onToggle(!goal.completedToday);
       },
       borderRadius: BorderRadius.circular(24),
       child: Container(
