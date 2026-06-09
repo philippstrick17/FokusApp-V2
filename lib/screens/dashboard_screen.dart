@@ -114,6 +114,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const SizedBox(height: 20),
                           Center(child: Text('Noch keine Verzichts-Ziele. Lege eines in Verzichte an.', style: TextStyle(color: onSurface.withAlpha(140)))),
                         ],
+                        const SizedBox(height: 48),
+                        Center(
+                          child: Text(
+                            'Hinweis: Dein Fortschritt wird täglich um 00:00 Uhr zurückgesetzt.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: onSurface.withAlpha(100),
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ],

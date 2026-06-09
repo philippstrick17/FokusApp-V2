@@ -21,10 +21,15 @@ class AppState extends ChangeNotifier {
   bool _gentleAnimationsEnabled = true;
   bool _darkModeEnabled = false;
   bool _privacyModeEnabled = true;
+  String _userName = '';
+  bool _onboardingComplete = false;
+  bool _initialized = false;
+  DateTime? _lastResetDate;
 
   static const _tasksKey = 'app_tasks';
   static const _goalsKey = 'app_goals';
   static const _settingsKey = 'app_settings';
+  static const _lastResetKey = 'app_last_reset';
 
   List<TaskModel> get tasks => List.unmodifiable(_tasks);
   List<AbstinenceGoalModel> get goals => List.unmodifiable(_goals);
@@ -33,6 +38,9 @@ class AppState extends ChangeNotifier {
   bool get gentleAnimationsEnabled => _gentleAnimationsEnabled;
   bool get darkModeEnabled => _darkModeEnabled;
   bool get privacyModeEnabled => _privacyModeEnabled;
+  String get userName => _userName;
+  bool get onboardingComplete => _onboardingComplete;
+  bool get initialized => _initialized;
 
   double get taskCompletionRatio {
     if (_tasks.isEmpty) return 0.0;
@@ -72,6 +80,7 @@ class AppState extends ChangeNotifier {
   void deleteTask(String id) {
     _tasks.removeWhere((task) => task.id == id);
     notifyListeners();
+    _persistState();
   }
 
   void toggleTaskCompleted(String id) {
@@ -120,6 +129,52 @@ class AppState extends ChangeNotifier {
     _persistState();
   }
 
+  void setUserName(String name) {
+    _userName = name.trim();
+    notifyListeners();
+    _persistState();
+  }
+
+  void completeOnboarding() {
+    _onboardingComplete = true;
+    notifyListeners();
+    _persistState();
+  }
+
+  Future<void> resetApp() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    _tasks
+      ..clear()
+      ..addAll([
+        TaskModel(id: 't1', title: 'Morgens 5 Minuten Atemübung', completed: true, priority: TaskPriority.low),
+        TaskModel(id: 't2', title: 'Inbox aufräumen', description: 'Alle neuen E-Mails kurz sichten', completed: false, priority: TaskPriority.medium),
+        TaskModel(id: 't3', title: 'Pomodoro-Session starten', description: '25 Minuten konzentriert arbeiten', completed: false, priority: TaskPriority.high),
+      ]);
+
+    _goals
+      ..clear()
+      ..addAll([
+        AbstinenceGoalModel(id: 'g1', title: 'Heute kein Zucker', completedToday: true, currentStreak: 4, successCount: 7),
+        AbstinenceGoalModel(id: 'g2', title: 'Keine Social-Media-Pause', completedToday: false, currentStreak: 1, successCount: 3),
+      ]);
+
+    _dailyRemindersEnabled = false;
+    _gentleAnimationsEnabled = true;
+    _darkModeEnabled = false;
+    _privacyModeEnabled = true;
+    _userName = '';
+    _onboardingComplete = false;
+    _initialized = true;
+    
+    final now = DateTime.now();
+    _lastResetDate = DateTime(now.year, now.month, now.day);
+
+    notifyListeners();
+    _persistState();
+  }
+
   void updateGoal(AbstinenceGoalModel newGoal) {
     final index = _goals.indexWhere((goal) => goal.id == newGoal.id);
     if (index == -1) return;
@@ -148,6 +203,7 @@ class AppState extends ChangeNotifier {
       _goals[i] = _goals[i].copyWith(completedToday: false);
     }
     notifyListeners();
+    _persistState();
   }
 
   void resetAllProgress() {
@@ -196,12 +252,54 @@ class AppState extends ChangeNotifier {
         _gentleAnimationsEnabled = decoded['gentleAnimations'] as bool? ?? _gentleAnimationsEnabled;
         _darkModeEnabled = decoded['darkMode'] as bool? ?? _darkModeEnabled;
         _privacyModeEnabled = decoded['privacyMode'] as bool? ?? _privacyModeEnabled;
+        _userName = decoded['userName'] as String? ?? _userName;
+        _onboardingComplete = decoded['onboardingComplete'] as bool? ?? _onboardingComplete;
       } catch (_) {
         // ignore invalid cache
       }
     }
 
+    final lastResetStr = prefs.getString(_lastResetKey);
+    if (lastResetStr != null) {
+      _lastResetDate = DateTime.tryParse(lastResetStr);
+    }
+
+    _checkAndResetDailyProgress();
+    _initialized = true;
     notifyListeners();
+  }
+
+  void _checkAndResetDailyProgress() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (_lastResetDate == null) {
+      _lastResetDate = today;
+      _persistState();
+      return;
+    }
+
+    if (_lastResetDate!.isBefore(today)) {
+      // Aufgaben zurücksetzen
+      for (var i = 0; i < _tasks.length; i++) {
+        _tasks[i] = _tasks[i].copyWith(completed: false);
+      }
+
+      // Verzichte zurücksetzen und Streaks prüfen
+      final difference = today.difference(_lastResetDate!).inDays;
+      for (var i = 0; i < _goals.length; i++) {
+        final goal = _goals[i];
+        // Wenn das Ziel gestern nicht erreicht wurde oder mehr als ein Tag vergangen ist, bricht der Streak
+        int newStreak = (goal.completedToday && difference <= 1) ? goal.currentStreak : 0;
+        _goals[i] = goal.copyWith(
+          completedToday: false,
+          currentStreak: newStreak,
+        );
+      }
+
+      _lastResetDate = today;
+      _persistState();
+    }
   }
 
   Future<void> _persistState() async {
@@ -213,6 +311,11 @@ class AppState extends ChangeNotifier {
       'gentleAnimations': _gentleAnimationsEnabled,
       'darkMode': _darkModeEnabled,
       'privacyMode': _privacyModeEnabled,
+      'userName': _userName,
+      'onboardingComplete': _onboardingComplete,
     }));
+    if (_lastResetDate != null) {
+      await prefs.setString(_lastResetKey, _lastResetDate!.toIso8601String());
+    }
   }
 }

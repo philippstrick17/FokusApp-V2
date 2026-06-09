@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fokus_app_v2/providers/app_state.dart';
+import 'package:fokus_app_v2/screens/onboarding_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -21,6 +22,16 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             children: [
               Text('Personalisierung', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Name'),
+                subtitle: Text(appState.userName.isEmpty ? 'Kein Name gesetzt' : appState.userName),
+                trailing: TextButton(
+                  onPressed: () => _showNameDialog(context, appState.userName),
+                  child: const Text('Ändern'),
+                ),
+              ),
               const SizedBox(height: 16),
               SwitchListTile(
                 title: const Text('Tägliche Erinnerungen'),
@@ -104,6 +115,38 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 6),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                title: const Text('App neu starten'),
+                subtitle: const Text('Setzt die App vollständig zurück und startet das Onboarding neu.'),
+                trailing: TextButton(
+                  onPressed: () async {
+                    final navigator = Navigator.of(context);
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('App neu starten'),
+                          content: const Text('Dies setzt die App zurück und beginnt das Onboarding erneut. Fortgeschrittene Daten gehen verloren.'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Abbrechen')),
+                            ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Zurücksetzen')),
+                          ],
+                        );
+                      },
+                    );
+                    if (confirmed == true) {
+                      await appState.resetApp();
+                      navigator.pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+                        (route) => false,
+                      );
+                    }
+                  },
+                  child: const Text('Dev Reset'),
+                ),
+              ),
+              const SizedBox(height: 6),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 title: const Text('Feedback senden'),
                 subtitle: const Text('Teile uns mit, was dir hilft oder was wir verbessern können.'),
                 trailing: Icon(Icons.arrow_forward_ios, color: Theme.of(context).colorScheme.onSurface.withAlpha(153), size: 18),
@@ -117,6 +160,36 @@ class SettingsScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showNameDialog(BuildContext context, String currentName) {
+    final nameController = TextEditingController(text: currentName);
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Name ändern'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: 'Name'),
+            textCapitalization: TextCapitalization.words,
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Abbrechen')),
+            ElevatedButton(
+              onPressed: () {
+                final newName = nameController.text.trim();
+                if (newName.isEmpty) return;
+                context.read<AppState>().setUserName(newName);
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Speichern'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

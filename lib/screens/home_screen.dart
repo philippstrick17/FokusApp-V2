@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:fokus_app_v2/screens/abstinence_screen.dart';
 import 'package:fokus_app_v2/screens/dashboard_screen.dart';
 import 'package:fokus_app_v2/screens/settings_screen.dart';
 import 'package:fokus_app_v2/screens/tasks_screen.dart';
+import 'package:fokus_app_v2/providers/app_state.dart';
 
 enum FocusTab { dashboard, tasks, abstinence }
 
@@ -102,6 +104,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  Text(
+                    'Hallo ${context.watch<AppState>().userName.isEmpty ? 'Fokus' : context.watch<AppState>().userName}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 10),
                   Text(_buildTabLabel(_selectedTab), style: Theme.of(context).textTheme.headlineSmall),
                 ],
               ),

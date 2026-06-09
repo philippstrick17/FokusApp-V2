@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:fokus_app_v2/providers/app_state.dart';
 import 'package:fokus_app_v2/screens/home_screen.dart';
+import 'package:fokus_app_v2/screens/onboarding_screen.dart';
 
 void main() {
   runApp(const FokusApp());
@@ -127,7 +128,9 @@ class FokusApp extends StatelessWidget {
             theme: _buildLightTheme(),
             darkTheme: _buildDarkTheme(),
             themeMode: appState.darkModeEnabled ? ThemeMode.dark : ThemeMode.light,
-            home: const HomeScreen(),
+            home: appState.initialized
+                ? (appState.onboardingComplete ? const HomeScreen() : const OnboardingScreen())
+                : const Scaffold(body: Center(child: CircularProgressIndicator())),
           );
         },
       ),
