@@ -10,29 +10,27 @@ class TasksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Aufgaben', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 6),
-          Text('Erstelle, bearbeite und erledige Aufgaben ohne Ablenkung.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700)),
-          const SizedBox(height: 20),
-          Expanded(
-            child: appState.tasks.isEmpty
-                ? _EmptyState(onTapAdd: () => _showTaskDialog(context))
-                : ListView.separated(
-                    itemCount: appState.tasks.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final task = appState.tasks[index];
-                      return _TaskItem(task: task);
-                    },
-                  ),
-          ),
-          _ActionBar(onAdd: () => _showTaskDialog(context)),
-        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (appState.tasks.isEmpty)
+              _EmptyState(onTapAdd: () => _showTaskDialog(context))
+            else
+              Column(
+                children: [
+                  ...appState.tasks.map((task) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _TaskItem(task: task),
+                      )),
+                ],
+              ),
+            const SizedBox(height: 20),
+            _ActionBar(onAdd: () => _showTaskDialog(context)),
+          ],
+        ),
       ),
     );
   }

@@ -62,8 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(_buildTabLabel(_selectedTab), style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 6),
-                  Text('Wähle deine Ansicht. Ruhig. Klar. Schnell.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700)),
                 ],
               ),
             ),
