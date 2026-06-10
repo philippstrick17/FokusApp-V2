@@ -22,12 +22,16 @@ class AppState extends ChangeNotifier {
   String _userName = '';
   bool _onboardingComplete = false;
   bool _initialized = false;
+  int _weeklyTaskStreak = 0;
+  int _consecutiveWeeksStreak = 0;
   DateTime? _lastResetDate;
 
   static const _tasksKey = 'app_tasks';
   static const _goalsKey = 'app_goals';
   static const _settingsKey = 'app_settings';
   static const _fitnessKey = 'app_fitness';
+  static const _weeklyStreakKey = 'app_weekly_streak';
+  static const _consecutiveWeeksKey = 'app_consecutive_weeks';
   static const _lastResetKey = 'app_last_reset';
 
   List<TaskModel> get tasks => List.unmodifiable(_tasks);
@@ -40,6 +44,8 @@ class AppState extends ChangeNotifier {
   bool get privacyModeEnabled => _privacyModeEnabled;
   String get userName => _userName;
   bool get onboardingComplete => _onboardingComplete;
+  int get weeklyTaskStreak => _weeklyTaskStreak;
+  int get consecutiveWeeksStreak => _consecutiveWeeksStreak;
   bool get initialized => _initialized;
 
   double get taskCompletionRatio {
@@ -169,6 +175,8 @@ class AppState extends ChangeNotifier {
     _privacyModeEnabled = true;
     _userName = '';
     _onboardingComplete = false;
+    _weeklyTaskStreak = 0;
+    _consecutiveWeeksStreak = 0;
     _initialized = true;
     
     final now = DateTime.now();
@@ -219,6 +227,8 @@ class AppState extends ChangeNotifier {
     for (var i = 0; i < _fitnessGoals.length; i++) {
       _fitnessGoals[i] = _fitnessGoals[i].copyWith(currentValue: 0);
     }
+    _weeklyTaskStreak = 0;
+    _consecutiveWeeksStreak = 0;
     notifyListeners();
     _persistState();
   }
@@ -292,6 +302,9 @@ class AppState extends ChangeNotifier {
       }
     }
 
+    _weeklyTaskStreak = prefs.getInt(_weeklyStreakKey) ?? 0;
+    _consecutiveWeeksStreak = prefs.getInt(_consecutiveWeeksKey) ?? 0;
+
     final lastResetStr = prefs.getString(_lastResetKey);
     if (lastResetStr != null) {
       _lastResetDate = DateTime.tryParse(lastResetStr);
@@ -313,13 +326,28 @@ class AppState extends ChangeNotifier {
     }
 
     if (_lastResetDate!.isBefore(today)) {
+      // Prüfen, ob gestern ALLE Aufgaben erledigt wurden
+      final allTasksDoneYesterday = _tasks.isNotEmpty && _tasks.every((t) => t.completed);
+      final difference = today.difference(_lastResetDate!).inDays;
+
+      if (difference == 1 && allTasksDoneYesterday) {
+        _weeklyTaskStreak++;
+        if (_weeklyTaskStreak >= 7) {
+          _weeklyTaskStreak = 0;
+          _consecutiveWeeksStreak++;
+        }
+      } else {
+        // Streak bricht, wenn ein Tag verpasst wurde oder Aufgaben nicht vollzählig waren
+        _weeklyTaskStreak = 0;
+        _consecutiveWeeksStreak = 0;
+      }
+
       // Aufgaben zurücksetzen
       for (var i = 0; i < _tasks.length; i++) {
         _tasks[i] = _tasks[i].copyWith(completed: false);
       }
 
       // Verzichte zurücksetzen und Streaks prüfen
-      final difference = today.difference(_lastResetDate!).inDays;
       for (var i = 0; i < _goals.length; i++) {
         final goal = _goals[i];
         // Wenn das Ziel gestern nicht erreicht wurde oder mehr als ein Tag vergangen ist, bricht der Streak
@@ -353,6 +381,8 @@ class AppState extends ChangeNotifier {
       'userName': _userName,
       'onboardingComplete': _onboardingComplete,
     }));
+    await prefs.setInt(_weeklyStreakKey, _weeklyTaskStreak);
+    await prefs.setInt(_consecutiveWeeksKey, _consecutiveWeeksStreak);
     if (_lastResetDate != null) {
       await prefs.setString(_lastResetKey, _lastResetDate!.toIso8601String());
     }

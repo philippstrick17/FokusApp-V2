@@ -73,28 +73,129 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            DonutChart(
-                              progress: appState.taskCompletionRatio,
-                              color: primaryColor,
-                              backgroundColor: primaryColor.withAlpha(28),
-                              label: 'Tagesaufgaben',
-                              valueLabel: '${(appState.taskCompletionRatio * 100).round()}%',
+                            Column(
+                              children: [
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    DonutChart(
+                                      progress: appState.taskCompletionRatio,
+                                      color: primaryColor,
+                                      backgroundColor: primaryColor.withAlpha(28),
+                                      label: '',
+                                      valueLabel: '',
+                                    ),
+                                    Text(
+                                      '${(appState.taskCompletionRatio * 100).round()}%', // Erhöhte Schriftgröße
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aufgaben',
+                                  style: TextStyle(
+                                    color: onSurface.withAlpha(160),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(width: 24),
-                            DonutChart(
-                              progress: appState.goalCompletionRatio,
-                              color: accentGreen,
-                              backgroundColor: accentGreen.withAlpha(28),
-                              label: 'Verzichts-Ziele',
-                              valueLabel: '${(appState.goalCompletionRatio * 100).round()}%',
+                            // Der neue Wochen-Fokus Kreis
+                            Column(
+                              children: [
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    DonutChart(
+                                      progress: appState.weeklyTaskStreak / 7,
+                                      color: const Color(0xFFFF8C00), // Orange/Flammenfarbe
+                                      backgroundColor: const Color(0xFFFF8C00).withAlpha(28),
+                                      label: '', // Wir setzen das interne Label leer...
+                                      valueLabel: '', // Wir nutzen das Icon in der Mitte
+                                    ),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.local_fire_department, color: Color(0xFFFF8C00), size: 28),
+                                        const SizedBox(height: 2), // Kleiner Abstand unter der Flamme
+                                        Text('${appState.weeklyTaskStreak}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)), // Auch hier angepasst für Konsistenz
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12), // ...und fügen hier den gewünschten Platz ein
+                                Text(
+                                  'Wochen-Fokus',
+                                  style: TextStyle(
+                                    color: onSurface.withAlpha(160),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(width: 24),
-                            DonutChart(
-                              progress: appState.fitnessCompletionRatio,
-                              color: const Color(0xFF4C6FFF),
-                              backgroundColor: const Color(0xFF4C6FFF).withAlpha(28),
-                              label: 'Fitness',
-                              valueLabel: '${(appState.fitnessCompletionRatio * 100).round()}%',
+                            Column(
+                              children: [
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    DonutChart(
+                                      progress: appState.goalCompletionRatio,
+                                      color: accentGreen,
+                                      backgroundColor: accentGreen.withAlpha(28),
+                                      label: '',
+                                      valueLabel: '',
+                                    ),
+                                    Text(
+                                      '${(appState.goalCompletionRatio * 100).round()}%', // Erhöhte Schriftgröße
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Verzichte',
+                                  style: TextStyle(
+                                    color: onSurface.withAlpha(160),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 24),
+                            Column(
+                              children: [
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    DonutChart(
+                                      progress: appState.fitnessCompletionRatio,
+                                      color: const Color(0xFF4C6FFF),
+                                      backgroundColor: const Color(0xFF4C6FFF).withAlpha(28),
+                                      label: '',
+                                      valueLabel: '',
+                                    ),
+                                    Text(
+                                      '${(appState.fitnessCompletionRatio * 100).round()}%', // Erhöhte Schriftgröße
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Fitness',
+                                  style: TextStyle(
+                                    color: onSurface.withAlpha(160),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -147,6 +248,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           )
                         else
                           const Center(child: Text('Keine Fitnessdaten verfügbar.')),
+                        const SizedBox(height: 32),
+                        if (appState.consecutiveWeeksStreak > 0)
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [primaryColor.withAlpha(200), primaryColor],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.emoji_events, color: Colors.white, size: 40),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('Meister-Streak', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                      Text(
+                                        'Du hast ${appState.consecutiveWeeksStreak} Wochen in Folge alle Aufgaben geschafft!',
+                                        style: TextStyle(color: Colors.white.withAlpha(230), fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         const SizedBox(height: 48),
                         Center(
                           child: Text(
