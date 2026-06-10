@@ -19,87 +19,107 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   FocusTab _selectedTab = FocusTab.dashboard;
+  FocusTab? _previousTab;
+
+  void _changeTab(FocusTab tab) {
+    if (_selectedTab == tab) return;
+    setState(() {
+      _previousTab = _selectedTab;
+      _selectedTab = tab;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      drawer: Drawer(
-        child: SafeArea(
-          minimum: const EdgeInsets.only(top: 16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Navigation', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-                    IconButton(
-                      icon: Icon(Icons.close_rounded, color: Theme.of(context).colorScheme.onSurface),
-                      tooltip: 'Schließen',
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _DrawerItem(
-                  label: 'Dashboard',
-                  selected: _selectedTab == FocusTab.dashboard,
-                  onTap: () {
-                    setState(() => _selectedTab = FocusTab.dashboard);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                _DrawerItem(
-                  label: 'Aufgaben',
-                  selected: _selectedTab == FocusTab.tasks,
-                  onTap: () {
-                    setState(() => _selectedTab = FocusTab.tasks);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                _DrawerItem(
-                  label: 'Verzichte',
-                  selected: _selectedTab == FocusTab.abstinence,
-                  onTap: () {
-                    setState(() => _selectedTab = FocusTab.abstinence);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                _DrawerItem(
-                  label: 'Fitness',
-                  selected: _selectedTab == FocusTab.fitness,
-                  onTap: () {
-                    setState(() => _selectedTab = FocusTab.fitness);
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: SafeArea(
-        minimum: const EdgeInsets.only(top: 16),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+    return PopScope(
+      canPop: _previousTab == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_previousTab != null) {
+          setState(() {
+            _selectedTab = _previousTab!;
+            _previousTab = null;
+          });
+        }
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: Drawer(
+          child: SafeArea(
+            minimum: const EdgeInsets.only(top: 16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Text('Navigation', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                       IconButton(
-                        icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.onSurface, size: 28),
-                        tooltip: 'Seite auswählen',
-                        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                        icon: Icon(Icons.close_rounded, color: Theme.of(context).colorScheme.onSurface),
+                        tooltip: 'Schließen',
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _DrawerItem(
+                    label: 'Dashboard',
+                    selected: _selectedTab == FocusTab.dashboard,
+                    onTap: () {
+                      _changeTab(FocusTab.dashboard);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  _DrawerItem(
+                    label: 'Aufgaben',
+                    selected: _selectedTab == FocusTab.tasks,
+                    onTap: () {
+                      _changeTab(FocusTab.tasks);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  _DrawerItem(
+                    label: 'Verzichte',
+                    selected: _selectedTab == FocusTab.abstinence,
+                    onTap: () {
+                      _changeTab(FocusTab.abstinence);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  _DrawerItem(
+                    label: 'Fitness',
+                    selected: _selectedTab == FocusTab.fitness,
+                    onTap: () {
+                      _changeTab(FocusTab.fitness);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        body: SafeArea(
+          minimum: const EdgeInsets.only(top: 16),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.onSurface, size: 28),
+                          tooltip: 'Seite auswählen',
+                          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                        ),
                       IconButton(
                         icon: Icon(Icons.settings_rounded, color: Theme.of(context).colorScheme.onSurface),
                         onPressed: () {
@@ -111,20 +131,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Hallo ${context.watch<AppState>().userName.isEmpty ? 'Fokus' : context.watch<AppState>().userName}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(_buildTabLabel(_selectedTab), style: Theme.of(context).textTheme.headlineSmall),
-                ],
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Hallo ${context.watch<AppState>().userName.isEmpty ? 'Fokus' : context.watch<AppState>().userName}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(_buildTabLabel(_selectedTab), style: Theme.of(context).textTheme.headlineSmall),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(child: _buildSelectedPage()),
-          ],
+              const SizedBox(height: 20),
+              Expanded(child: _buildSelectedPage()),
+            ],
+          ),
         ),
       ),
     );
@@ -142,11 +163,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return DashboardScreen(
           onNavigate: (destination) {
             if (destination == 'tasks') {
-              setState(() => _selectedTab = FocusTab.tasks);
+              _changeTab(FocusTab.tasks);
             } else if (destination == 'abstinence') {
-              setState(() => _selectedTab = FocusTab.abstinence);
+              _changeTab(FocusTab.abstinence);
             } else if (destination == 'fitness') {
-              setState(() => _selectedTab = FocusTab.fitness);
+              _changeTab(FocusTab.fitness);
             }
           },
         );

@@ -32,8 +32,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  void _triggerCelebration(bool completed) {
-    if (!completed) return;
+  void _triggerCelebration(bool completed, bool animationsEnabled) {
+    // Nur feiern, wenn die Aufgabe abgeschlossen ist UND Animationen aktiviert sind
+    if (!completed || !animationsEnabled) return;
     SystemSound.play(SystemSoundType.click);
     _confettiController.play();
   }
@@ -86,8 +87,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       valueLabel: '',
                                     ),
                                     Text(
-                                      '${(appState.taskCompletionRatio * 100).round()}%', // Erhöhte Schriftgröße
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      '${(appState.taskCompletionRatio * 100).round()}%',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                                     ),
                                   ],
                                 ),
@@ -151,8 +152,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       valueLabel: '',
                                     ),
                                     Text(
-                                      '${(appState.goalCompletionRatio * 100).round()}%', // Erhöhte Schriftgröße
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      '${(appState.goalCompletionRatio * 100).round()}%',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                                     ),
                                   ],
                                 ),
@@ -181,8 +182,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       valueLabel: '',
                                     ),
                                     Text(
-                                      '${(appState.fitnessCompletionRatio * 100).round()}%', // Erhöhte Schriftgröße
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      '${(appState.fitnessCompletionRatio * 100).round()}%',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                                     ),
                                   ],
                                 ),
@@ -213,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(height: 16),
                         ...recentTasks.map((task) => Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: _TaskCard(task: task, onToggle: (completed) => _triggerCelebration(completed)),
+                              child: _TaskCard(task: task, onToggle: (completed) => _triggerCelebration(completed, appState.gentleAnimationsEnabled)),
                             )),
                         if (recentTasks.isEmpty) ...[
                           const SizedBox(height: 20),
@@ -228,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(height: 16),
                         ...recentGoals.map((goal) => Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: _GoalCard(goal: goal, onToggle: (completed) => _triggerCelebration(completed)),
+                              child: _GoalCard(goal: goal, onToggle: (completed) => _triggerCelebration(completed, appState.gentleAnimationsEnabled)),
                             )),
                         if (recentGoals.isEmpty) ...[
                           const SizedBox(height: 20),

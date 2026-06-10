@@ -42,8 +42,8 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               SwitchListTile(
-                title: const Text('Sanfte Animationen'),
-                subtitle: const Text('Zeige kleine Animationen für Fortschritt und Feedback.'),
+                title: const Text('Animationen'),
+                subtitle: const Text('Zeige Animationen wie Konfetti und visuelles Feedback.'),
                 value: appState.gentleAnimationsEnabled,
                 onChanged: (_) => appState.toggleGentleAnimations(),
                 activeThumbColor: Theme.of(context).colorScheme.primary,
