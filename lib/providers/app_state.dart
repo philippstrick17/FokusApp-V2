@@ -7,16 +7,9 @@ import 'package:fokus_app_v2/models/task_model.dart';
 import 'package:fokus_app_v2/models/fitness_goal_model.dart';
 
 class AppState extends ChangeNotifier {
-  final List<TaskModel> _tasks = [
-    TaskModel(id: 't1', title: 'Morgens 5 Minuten Atemübung', completed: true, priority: TaskPriority.low),
-    TaskModel(id: 't2', title: 'Inbox aufräumen', description: 'Alle neuen E-Mails kurz sichten', completed: false, priority: TaskPriority.medium),
-    TaskModel(id: 't3', title: 'Pomodoro-Session starten', description: '25 Minuten konzentriert arbeiten', completed: false, priority: TaskPriority.high),
-  ];
+  final List<TaskModel> _tasks = [];
 
-  final List<AbstinenceGoalModel> _goals = [
-    AbstinenceGoalModel(id: 'g1', title: 'Heute kein Zucker', completedToday: true, currentStreak: 4, successCount: 7),
-    AbstinenceGoalModel(id: 'g2', title: 'Keine Social-Media-Pause', completedToday: false, currentStreak: 1, successCount: 3),
-  ];
+  final List<AbstinenceGoalModel> _goals = [];
 
   final List<FitnessGoalModel> _fitnessGoals = [
     FitnessGoalModel(id: 'f1', title: 'Schritte', targetValue: 6000, currentValue: 0, unit: 'Schritte'),
@@ -151,30 +144,18 @@ class AppState extends ChangeNotifier {
     _persistState();
   }
 
-  void completeOnboarding() {
+  Future<void> completeOnboarding() async {
     _onboardingComplete = true;
     notifyListeners();
-    _persistState();
+    await _persistState();
   }
 
   Future<void> resetApp() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
 
-    _tasks
-      ..clear()
-      ..addAll([
-        TaskModel(id: 't1', title: 'Morgens 5 Minuten Atemübung', completed: true, priority: TaskPriority.low),
-        TaskModel(id: 't2', title: 'Inbox aufräumen', description: 'Alle neuen E-Mails kurz sichten', completed: false, priority: TaskPriority.medium),
-        TaskModel(id: 't3', title: 'Pomodoro-Session starten', description: '25 Minuten konzentriert arbeiten', completed: false, priority: TaskPriority.high),
-      ]);
-
-    _goals
-      ..clear()
-      ..addAll([
-        AbstinenceGoalModel(id: 'g1', title: 'Heute kein Zucker', completedToday: true, currentStreak: 4, successCount: 7),
-        AbstinenceGoalModel(id: 'g2', title: 'Keine Social-Media-Pause', completedToday: false, currentStreak: 1, successCount: 3),
-      ]);
+    _tasks.clear();
+    _goals.clear();
 
     _fitnessGoals
       ..clear()

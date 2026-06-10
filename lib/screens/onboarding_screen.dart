@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fokus_app_v2/providers/app_state.dart';
+import 'package:fokus_app_v2/screens/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -29,7 +30,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _finishOnboarding() {
+  Future<void> _finishOnboarding() async {
     final appState = context.read<AppState>();
     appState.setUserName(_nameController.text.trim());
 
@@ -41,7 +42,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       appState.addGoal(title: _goalController.text.trim());
     }
 
-    appState.completeOnboarding();
+    // Await the completion and persistence of onboarding state
+    await appState.completeOnboarding();
+
+    if (mounted) {
+      // Navigate to HomeScreen and remove all previous routes from the stack
+      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const HomeScreen()), (route) => false);
+    }
   }
 
   Future<void> _openTextInputOverlay({
